@@ -13,9 +13,9 @@ class TicTacToe:
 
     def showBoard(self):
         print("\n")
-        print(board[0] + " | " + board[1] + " | " + board[2] + "     1 | 2 | 3")
-        print(board[3] + " | " + board[4] + " | " + board[5] + "     4 | 5 | 6")
-        print(board[6] + " | " + board[7] + " | " + board[8] + "     7 | 8 | 9")
+        print(self.board[0] + " | " + self.board[1] + " | " + self.board[2] + "     1 | 2 | 3")
+        print(self.board[3] + " | " + self.board[4] + " | " + self.board[5] + "     4 | 5 | 6")
+        print(self.board[6] + " | " + self.board[7] + " | " + self.board[8] + "     7 | 8 | 9")
         print("\n")
 
     def checkRows(self):
@@ -66,9 +66,9 @@ class TicTacToe:
             self.currentPlayer = "X"
 
     def checkWinner(self):
-        rowWinner = checkRows
-        columnsWinner = checkColumns
-        diagonalWinner = checkDiagonal
+        rowWinner = self.checkRows()
+        columnsWinner = self.checkColumns()
+        diagonalWinner = self.checkDiagonal()
         
         if rowWinner:
             self.winner = rowWinner
@@ -80,28 +80,28 @@ class TicTacToe:
             self.winner = None
 
     def gameCond(self):
-        checkWinner()
-        checkTie()
+        self.checkWinner()
+        self.checkTie()
 
-    def handleTurn(self,player):
-        print("Giliran ",player)
+    def handleTurn(self):
+        print("Giliran ",self.currentPlayer)
         position = input("Pilih posisi dari 1-9: ")
 
         valid = False
         while not valid:
-            while int(position) not in range(0,10):
+            while int(position) not in range(1,10):
                 position = input("Pilih posisi dari 1-9: ")
 
-        position = int(position)
+            position = int(position) - 1
 
-        if self.board[position] == "-":
-            valid = True
-        else:
-            print("Pilih posisi lain!")
+            if self.board[position] == "-":
+                valid = True
+            else:
+                print("Pilih posisi lain!")
 
-        self.board[position] = player
+        self.board[position] = self.currentPlayer
 
-        showBoard()
+        self.showBoard()
 
 
     def parseGameInfo(self, gameInfo):
@@ -113,10 +113,15 @@ class TicTacToe:
         self.winner = gameInfo[2]
         self.currentPlayer = gameInfo[3]
 
-        
+    def checkCond(self):
+        print("WIP")
 
+    def makeGameInfo(self):
+        gameInfo = [self.board, self.gameStatus, self.winner, self.currentPlayer]
+        return gameInfo
+ 
+    
 
-        
-
-
-
+if __name__ == "__main__":
+    game = TicTacToe()
+    game.showBoard()
