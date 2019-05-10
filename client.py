@@ -33,6 +33,7 @@ def play():
         game.gameCond()
         if game.gameStatus:
             if game.currentPlayer == playerSym:
+                print("{} -- VS --  {}".format(plName,opp))
                 game.showBoard()
                 game.handleTurn()
                 game.flipPlayer()
@@ -71,11 +72,3 @@ def menu():
             
 
 menu()
-
-
-
-
-    
-
-
-
