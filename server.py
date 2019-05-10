@@ -55,16 +55,32 @@ def sendResponse(conn,data):
         conn.send(send)
     except socket.error as e:
         print(str(e))
-    print("Data dikirim: ",data)
+    # print("Data dikirim: ",data)
+
+# def sendPlayerInfo(conn,opp):
+    
+
 
 def bcGameInfo(data):
     for pl in playerList:
         sendResponse(pl[0],data)
 
-def clientPlayThread(conn,sym):
+# def getPlayerName(conn):
+#     playerName = pickle.loads(conn.recv(BUFFER_SIZE))
+
+def clientPlayThread(conn,sym,b):
+    global vs
     playerSym = sym
     print("clientPlayThread run: ",playerSym)
     sendResponse(conn,"ready")
+    #-----------------
+    # getPlayerName(conn)
+    playerName = pickle.loads(conn.recv(BUFFER_SIZE))
+    vs.append(playerName)
+    print(vs)
+    b.wait()
+    sendResponse(conn,vs)
+    #-----------------
     time.sleep(0.2)
     sendResponse(conn,game.makeGameInfo())
     while True:
@@ -73,18 +89,25 @@ def clientPlayThread(conn,sym):
             # data = pickle.loads(data)
             data = pickle.loads(conn.recv(BUFFER_SIZE))
             print(data)
-            if len(data) == 4:
+            if data[0] == "gameInfo":
+                print("gameinfo: ")
+                data = data[1]
+                print(data)
                 game.parseGameInfo(data)
+                print(game.makeGameInfo())
                 bcGameInfo(data)
-            print(data)
+
+            else:
+                print("Error: ",data)
+                
         except: 
-            # print(str(e))
             continue
 
 
 def playGame():
+    b = threading.Barrier(2)
     for pl in playerList:
-        start_new_thread(clientPlayThread, (pl[0],pl[1]))
+        start_new_thread(clientPlayThread, (pl[0],pl[1],b))
         time.sleep(1)
     # playerList = [playerList[0][0], playerList[1][0]]
 
@@ -114,7 +137,6 @@ def clientThread(conn):
             print(data)
             sendResponse(conn,"data diterima")
         print("Close clientThread")
-        print(ex)
         if ex:
             playGame()
     except :
@@ -137,6 +159,7 @@ def acceptClient():
 
 #------------------------------------
 #Main
+vs = []
 game = gameBoard()
 print(game.makeGameInfo()[0])
 

@@ -17,10 +17,16 @@ banner = """
 
 def play():
     global game
-    print("WIP play")
-    print(playerSym)
-    send = playerSym
-    net.send(send)
+    # print("WIP play")
+    # print(playerSym)
+    # send = playerSym
+    plName = input("Masukkan Nama player: ")
+    net.send(plName)
+    data = net.recv()
+    for op in data:
+        if op != plName:
+            opp = op
+    print("Lawan: ",opp)
     while game.gameStatus:
         gameinfo = net.recv()
         game.parseGameInfo(gameinfo)
@@ -30,7 +36,7 @@ def play():
                 game.showBoard()
                 game.handleTurn()
                 game.flipPlayer()
-                net.send(game.makeGameInfo())
+                net.send(["gameInfo",game.makeGameInfo()])
             else:
                 print("Tunggu Giliran")
         else:
