@@ -14,6 +14,25 @@ banner = """
   \_/  \_/\____/    \_/  \_/ \|\____/    \_/  \____/\____\
 """
 
+def restartGame():
+    restart = ''
+    while 1:
+        restart = input("Main Lagi?(Y/n: )")
+        if restart == "Y" or restart == "n":
+            break
+    if restart == 'n':
+        net.send("stop")
+        return False
+    elif restart == 'Y':
+        net.send("restart")
+        response = net.recv()
+        if response == "stop":
+            print("Lawan sudah berhenti")
+            return False
+        else:
+            return True
+
+
 
 def play():
     global game
@@ -27,22 +46,26 @@ def play():
         if op != plName:
             opp = op
     print("Lawan: ",opp)
-    while game.gameStatus:
-        gameinfo = net.recv()
-        game.parseGameInfo(gameinfo)
-        game.gameCond()
-        if game.gameStatus:
-            if game.currentPlayer == playerSym:
-                print("{} -- VS --  {}".format(plName,opp))
-                game.showBoard()
-                game.handleTurn()
-                game.flipPlayer()
-                net.send(["gameInfo",game.makeGameInfo()])
+    play = True
+    while play:
+        while True:
+            gameinfo = net.recv()
+            game.parseGameInfo(gameinfo)
+            game.gameCond()
+            if game.gameStatus:
+                if game.currentPlayer == playerSym:
+                    print("{} -- VS --  {}".format(plName,opp))
+                    game.showBoard()
+                    game.handleTurn()
+                    game.flipPlayer()
+                    net.send(["gameInfo",game.makeGameInfo()])
+                else:
+                    print("Tunggu Giliran")
             else:
-                print("Tunggu Giliran")
-        else:
-            break
-    print("Game selesai")
+                break
+        print("Game selesai")
+        net.send("endgame")
+        play = restartGame()
 
 
 def menu():

@@ -31,7 +31,6 @@ class gameBoard:
                       "-", "-", "-"]
         self.gameStatus = True
         self.winner = None
-        # self.Player = {}
         self.currentPlayer = "X"
 
     def parseGameInfo(self, gameInfo):
@@ -46,16 +45,38 @@ class gameBoard:
     def makeGameInfo(self):
         gameInfo = [self.board, self.gameStatus, self.winner, self.currentPlayer]
         return gameInfo
+
+    def resetGame(self):
+        self.board = ["-", "-", "-",
+                      "-", "-", "-",
+                      "-", "-", "-"]
+        self.gameStatus = True
+        self.winner = None
+        self.currentPlayer = "X"
+
+#-------------------------------------------
+# class gameRoomServer:
+#     def __init__(self, ):
+#         self.game = gameBoard()
+#         self.playerList = []
+#         self.playerConn = []
+#         self.gameRun = True
+#         self.barrier = threading.Barrier(2)
+
+    # def returnGameBoard(self):
+    #     return self.game
+
     
 # ------------------------------------------
 
+#Game server function
 def sendResponse(conn,data):
     try:
         send = pickle.dumps(data)
         conn.send(send)
     except socket.error as e:
         print(str(e))
-    # print("Data dikirim: ",data)
+    print("Data dikirim: ",data)
 
 # def sendPlayerInfo(conn,opp):
     
@@ -67,6 +88,44 @@ def bcGameInfo(data):
 
 # def getPlayerName(conn):
 #     playerName = pickle.loads(conn.recv(BUFFER_SIZE))
+
+def restartGame(conn,b):
+    print("restart game func")
+
+    global restartRequest
+    clientCommand = pickle.loads(conn.recv(BUFFER_SIZE))
+    locker.acquire()
+    print("lock acquire")
+    print(clientCommand)
+    try:
+        if clientCommand == "restart":
+            restartRequest.append(True)
+            print(restartRequest)
+        elif clientCommand == "stop":
+            restartRequest.append(False)
+            print(restartRequest)
+        else:
+            print("error command")
+    except:
+        print("ada error")
+
+    if len(restartRequest) == 2:
+        if restartRequest[0] and restartRequest[1]:
+            bcGameInfo("restart")
+            game.resetGame()
+            bcGameInfo(game.makeGameInfo())
+        else:
+            bcGameInfo("stop")
+    else:
+        print("belum 2 request")
+    locker.release()
+    print("lock dilepas")
+    b.wait()
+    restart = restartRequest[0] and restartRequest[1]
+    restartRequest = []
+    print("Restart Game Func Finished")
+    return restart
+
 
 def clientPlayThread(conn,sym,b):
     global vs
@@ -96,12 +155,16 @@ def clientPlayThread(conn,sym,b):
                 game.parseGameInfo(data)
                 print(game.makeGameInfo())
                 bcGameInfo(data)
-
+            elif data == "endgame":
+                restart = restartGame(conn,b)
+                if not restart:
+                    break
+                    
             else:
                 print("Error: ",data)
-                
         except: 
             continue
+    print("Game selesai")
 
 
 def playGame():
@@ -160,8 +223,12 @@ def acceptClient():
 #------------------------------------
 #Main
 vs = []
+restartRequest = []
+locker = threading.Lock()
+print(locker)
 game = gameBoard()
-print(game.makeGameInfo()[0])
+# gameRoom = gameRoomServer()
+# print(game.makeGameInfo()[0])
 
 playerList = []
 acceptClient()

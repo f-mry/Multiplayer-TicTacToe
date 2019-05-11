@@ -3,3 +3,5 @@ game_refer.py
 network_refer.py
 server_refer.py
 Session.vim
+testing.py
+__pycache__/*
