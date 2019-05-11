@@ -5,6 +5,7 @@ import time
 
 net = Network()
 game = TicTacToe()
+score = ''
 playerSym = ''
 banner = """
  _____  _  ____    _____  ____  ____    _____  ____  _____
@@ -36,6 +37,7 @@ def restartGame():
 
 def play():
     global game
+    global score
     # print("WIP play")
     # print(playerSym)
     # send = playerSym
@@ -46,6 +48,7 @@ def play():
         if op != plName:
             opp = op
     print("Lawan: ",opp)
+    score = {plName: 0, opp: 0}
     play = True
     while play:
         while True:
@@ -54,7 +57,7 @@ def play():
             game.gameCond()
             if game.gameStatus:
                 if game.currentPlayer == playerSym:
-                    print("{} -- VS --  {}".format(plName,opp))
+                    print("{} -{}-- VS --{}-  {}".format(plName,score[plName],score[opp],opp))
                     game.showBoard()
                     game.handleTurn()
                     game.flipPlayer()
@@ -64,6 +67,12 @@ def play():
             else:
                 break
         print("Game selesai")
+        if game.winner == playerSym:
+            score[plName] += 1
+        else:
+            score[opp] += 1
+
+        print("Score: \n{}: {}\n{}: {}".format(plName,score[plName],opp,score[opp]))
         net.send("endgame")
         play = restartGame()
 
@@ -85,13 +94,6 @@ def menu():
         elif respond == "full":
             print("Room full")
             net.client.close()
-            
-            # while 1:
-            #     if net.recv() == "ready":
-            #         print("Ready")
-            #         play()
-            #     else:
-            #         print(".",sep='.')
             
 
 menu()

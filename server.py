@@ -225,7 +225,7 @@ def acceptClient():
 vs = []
 restartRequest = []
 locker = threading.Lock()
-print(locker)
+# print(locker)
 game = gameBoard()
 # gameRoom = gameRoomServer()
 # print(game.makeGameInfo()[0])
