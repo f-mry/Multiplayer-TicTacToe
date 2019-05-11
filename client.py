@@ -66,6 +66,7 @@ def play():
         print("Game selesai")
         net.send("endgame")
         play = restartGame()
+    net.client.close()
 
 
 def menu():
@@ -86,12 +87,7 @@ def menu():
             print("Room full")
             net.client.close()
             
-            # while 1:
-            #     if net.recv() == "ready":
-            #         print("Ready")
-            #         play()
-            #     else:
-            #         print(".",sep='.')
-            
-
+start = time.time()
 menu()
+end = time.time() - start
+print("Waktu Bermain: ",end)
