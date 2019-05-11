@@ -49,11 +49,32 @@ class gameBoard:
     
 # ------------------------------------------
 class gameRoomServer:
-    def __init__(self, ):
+    def __init__(self,roomName ):
+        self.roomName = roomName
         self.game = gameBoard()
         self.playerList = []
         self.playerConn = []
         self.gameRunning = True
+        self.barrier = threading.Barrier(2)
+        self.locker = threading.Lock()
+        self.playerInRoom = 0
+
+    def playerJoinRoom(self,playerConn,playerName):
+        if self.playerInRoom < 2:
+            self.playerList.append(playerName)
+            self.playerConn.append(playerConn)
+            self.playerInRoom += 1
+            return True
+        else:
+            print("Room Full")
+            return False
+
+    def checkPlayerReady(self):
+        if self.playerInRoom == 2:
+            return True
+        else:
+            return False
+
 #------------------------------------------
 
 def sendResponse(conn,data):
@@ -127,15 +148,81 @@ def clientThread(conn):
     except :
         print("stop")
 
-def initClient():
+def playNew(conn,gameRoom):
+    print("WIP")
+
+
+
+def waitOpp(conn,gameroom):
+    print("WIP waitopp")
+    print(gameroom.playerList," ",gameroom.roomName)
+    b = gameroom.barrier
+    b.wait()
+    if gameroom.checkPlayerReady():
+        sendResponse(conn,"ready")
+    print("WaitOpp success")
+
+
+def createRoom(conn):
+    print("CreateRoom")
+    try:
+        playerName = pickle.loads(conn.recv(BUFFER_SIZE))
+        print(playerName)
+        roomName = pickle.loads(conn.recv(BUFFER_SIZE))
+        gameRoom = gameRoomServer(roomName)
+        gameRoom.playerJoinRoom(conn,playerName)
+        roomServer.append(gameRoom)
+        # print(roomServer[roomServer.index(gameRoom)].roomName)
+        sendResponse(conn, True)
+        if waitOpp(conn,gameRoom):
+            playNew(conn)
+    except Exception as e:
+        print("Error : ",e)
+        sendResponse(conn, False)
+
+def findRoom(conn):
+    try:
+        playerName = pickle.loads(conn.recv(BUFFER_SIZE))
+        print(playerName)
+        roomNameList = []
+        for room in roomServer:
+            roomName = room.roomName
+            roomPlayer = room.playerInRoom
+            if roomPlayer < 2:
+                roomNameList.append(roomName)
+        sendResponse(conn,roomNameList)
+        roomChoice = pickle.loads(conn.recv(BUFFER_SIZE))
+        print("room: ",roomChoice)
+        for room in roomServer:
+            if room.playerInRoom <2:
+                if room.roomName == roomChoice:
+                    if room.playerJoinRoom(conn,playerName):
+                        print("room name = ",room.roomName)
+                        roomChoice = room
+                        sendResponse(conn,True)
+                        break
+        roomChoice.barrier.wait()
+    except Exception as e:
+        print("Error : ",e)
+
+
+def initClient(conn):
     print("Client Thread Init Connect")
     sendResponse(conn,"Connected to server")
     try:
-        print("WIP")
-    except:
-        print("error")
-
-
+        clientCommand = pickle.loads(conn.recv(BUFFER_SIZE))
+        if clientCommand == "mode":
+            mode = pickle.loads(conn.recv(BUFFER_SIZE))
+            if mode == "crtRoom":
+                createRoom(conn)
+            elif mode == "fndRoom":
+                findRoom(conn)
+    except socket.error as e:
+        print(str(e))
+    except Exception as e:
+        print(str(e))
+    print("Conn Closed")
+    conn.close()
 
 
 def acceptClient():
@@ -143,11 +230,8 @@ def acceptClient():
         try:
             conn,addr = sock.accept()
             print(addr, " connected")
-            connList.append(conn)
-            start_new_thread(clientThread,(conn,))
+            start_new_thread(initClient , (conn,))
         except KeyboardInterrupt:
-            for cn in connList:
-                cn.close()
             sock.close()
             break
 

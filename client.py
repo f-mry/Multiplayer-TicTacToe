@@ -55,16 +55,88 @@ def menu():
         elif respond == "full":
             print("Room full")
             net.client.close()
-            
-            # while 1:
-            #     if net.recv() == "ready":
-            #         print("Ready")
-            #         play()
-            #     else:
-            #         print(".",sep='.')
-            
 
-menu()
+
+def chooseMode():
+    inp = '0'
+    while int(inp) not in range(1,4):
+        print("1.\tBuat Room\n2.\tCari Room\n3\tExit")
+        inp = input("Pilih Mode: ")
+
+    if inp == '1':
+        net.send("crtRoom")
+        return 1
+    elif inp == '2':
+        net.send("fndRoom")
+        return 2
+    else:
+        net.send("stop")
+        print("See you")
+        return 0
+
+
+
+def newRoom():
+    print("WIP newGame")
+    playerName = input("Masukkan Nama Player: ")
+    net.send(playerName)
+    roomName = input("Buat Nama Room: ")
+    net.send(roomName)
+    roomCreated = net.recv()
+    if roomCreated:
+        print("Room berhasil dibuat")
+        return True
+    else:
+        print("Gagal")
+        return False
+
+def playGame():
+    print("WIP playGame")
+
+def waitOpp():
+    print("Menunggu pemain lain")
+    playerReady = net.waitRecv("ready")
+    if playerReady:
+        playGame()
+    else:
+        print("Gagal menghubungkan dengan pemain Lain")
+
+
+def findGame():
+    playerName = input("Masukkan Nama Player: ")
+    net.send(playerName)
+
+    print("WIP find Game")
+    roomList = net.recv()
+    for room in enumerate(roomList):
+        print(room)
+        
+    room = input("Pilih room: ")
+    room = int(room)
+    net.send(roomList[room])
+    joinRoom = net.recv()
+
+
+
+
+def menuNew():
+    while True:
+        try:
+            print(banner)
+            if net.connect():
+                net.send("mode")
+                inp = chooseMode()
+                if inp == 1:
+                    roomCreated = newRoom()
+                    if roomCreated:
+                        waitOpp()
+                elif inp == 2:
+                    findGame()
+        except KeyboardInterrupt:
+            net.client.close()
+        break
+
+menuNew()
 
 
 

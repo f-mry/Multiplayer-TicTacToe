@@ -29,7 +29,7 @@ class Network():
         try:
             data = self.client.recv(self.BUFFER_SIZE)
             data = pickle.loads(data)
-        except socket.error as e:
+        except Exception as e:
             print(str(e))
         return data    
 
