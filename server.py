@@ -48,6 +48,13 @@ class gameBoard:
         return gameInfo
     
 # ------------------------------------------
+class gameRoomServer:
+    def __init__(self, ):
+        self.game = gameBoard()
+        self.playerList = []
+        self.playerConn = []
+        self.gameRunning = True
+#------------------------------------------
 
 def sendResponse(conn,data):
     try:
@@ -120,6 +127,15 @@ def clientThread(conn):
     except :
         print("stop")
 
+def initClient():
+    print("Client Thread Init Connect")
+    sendResponse(conn,"Connected to server")
+    try:
+        print("WIP")
+    except:
+        print("error")
+
+
 
 
 def acceptClient():
@@ -137,10 +153,7 @@ def acceptClient():
 
 #------------------------------------
 #Main
-game = gameBoard()
-print(game.makeGameInfo()[0])
-
-playerList = []
+roomServer = []
 acceptClient()
     
     # start_new_thread(clientThread, (conn,addr,))
